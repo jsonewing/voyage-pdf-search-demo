@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Voyage PDF Search Lab</title>
+    <link rel="icon" href="/static/brand/mongodb.ico" />
+    <link rel="stylesheet" href="/static/styles.css?v=10" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-lockup" aria-label="MongoDB Atlas and Voyage AI">
+          <span class="brand-unit mongodb-brand">
+            <img src="/static/brand/mongodb.ico" alt="" />
+            <span><strong>MongoDB</strong><small>Atlas</small></span>
+          </span>
+          <span class="brand-plus" aria-hidden="true">+</span>
+          <span class="brand-unit voyage-brand">
+            <img src="/static/brand/voyage-ai.svg" alt="" />
+            <span><strong>Voyage AI</strong><small>Retrieval models</small></span>
+          </span>
+        </div>
+        <div class="topbar-actions">
+          <button id="setup-open" class="setup-open" type="button" title="Configure local Atlas, Voyage, and OpenAI connections">
+            <span class="connection-dot" aria-hidden="true"></span>
+            <span id="setup-open-label">Connection</span>
+          </button>
+          <button id="enablement-open" class="enablement-open" type="button">
+            <span aria-hidden="true">{ }</span>
+            Enablement
+          </button>
+          <div class="service-state" title="Use approved non-sensitive content and non-production services only"><span></span> Demo use only</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="intro-band">
+        <div>
+          <p class="eyebrow">PDF retrieval workbench</p>
+          <h1>Upload. Index. Compare.</h1>
+          <p class="lede">Compare text, contextual, and visual retrieval on the same PDF evidence, then optionally generate a grounded executive answer.</p>
+        </div>
+        <div class="protocol-strip" aria-label="Pipeline summary">
+          <div><strong>3</strong><span>Voyage models</span></div>
+          <div><strong>3</strong><span>Search modes</span></div>
+          <div><strong>1</strong><span>Canonical corpus</span></div>
+        </div>
+      </section>
+
+      <section class="prepare-layout">
+        <div class="surface upload-surface">
+          <div class="section-heading">
+            <div>
+              <p class="step-label">01 / Prepare</p>
+              <h2>PDF corpus</h2>
+            </div>
+            <span class="format-badge">PDF · 50 MB max</span>
+          </div>
+
+          <form id="upload-form">
+            <label id="drop-zone" class="drop-zone" for="pdf-file">
+              <input id="pdf-file" name="file" type="file" accept="application/pdf,.pdf" required />
+              <span class="file-mark">PDF</span>
+              <span class="drop-copy">
+                <strong id="file-name">Select a PDF</strong>
+                <small id="file-detail">Text PDFs with tables are supported</small>
+              </span>
+              <span class="browse-action">Browse</span>
+            </label>
+            <fieldset class="model-selector">
+              <legend>Embedding pipelines</legend>
+              <div id="model-options" class="model-options"></div>
+            </fieldset>
+            <button id="upload-button" class="primary-button" type="submit">Build search pipelines</button>
+          </form>
+
+          <div class="existing-source">
+            <label for="document-select">Indexed document</label>
+            <select id="document-select">
+              <option value="">No indexed PDFs found</option>
+            </select>
+            <span id="source-models" class="source-models">No model lanes available</span>
+          </div>
+        </div>
+
+        <div class="surface status-surface" aria-live="polite">
+          <div class="section-heading">
+            <div>
+              <p class="step-label">02 / Process</p>
+              <h2>Pipeline status</h2>
+            </div>
+            <span id="job-state" class="state-badge idle">Idle</span>
+          </div>
+          <div class="progress-track"><span id="progress-bar"></span></div>
+          <div id="stage-list" class="stage-list"></div>
+          <div id="job-message" class="job-message">Upload a PDF to start a new indexing run.</div>
+        </div>
+      </section>
+
+      <section class="surface search-surface">
+        <div class="section-heading search-heading">
+          <div>
+            <p class="step-label">03 / Retrieve</p>
+            <h2>Live question</h2>
+          </div>
+          <div class="mode-control" role="radiogroup" aria-label="Search mode">
+            <label><input type="radio" name="mode" value="lexical" /><span>Lexical</span></label>
+            <label><input type="radio" name="mode" value="vector" /><span>Vector</span></label>
+            <label><input type="radio" name="mode" value="hybrid" checked /><span>Hybrid</span></label>
+          </div>
+        </div>
+
+        <form id="search-form" class="question-form">
+          <div class="question-label-row">
+            <label for="question">Question</label>
+            <span class="query-options">
+              <label class="query-option rerank-control" title="Retrieve 20 candidates and use Voyage Rerank to select the final 5">
+                <input id="rerank" type="checkbox" />
+                <span>Voyage rerank</span>
+              </label>
+              <label class="query-option rag-control" title="Generate a grounded executive summary from each pipeline's retrieved evidence">
+                <input id="rag" type="checkbox" disabled />
+                <span>OpenAI RAG answer</span>
+              </label>
+            </span>
+          </div>
+          <div class="question-row">
+            <textarea id="question" rows="2" placeholder="Ask a precise question about the indexed PDF" required></textarea>
+            <button id="search-button" class="primary-button" type="submit" disabled>Search</button>
+          </div>
+        </form>
+
+        <div class="strategy-grid" aria-label="Search strategy summary">
+          <article data-mode-summary="lexical">
+            <span class="strategy-code">$search</span>
+            <strong>Lexical</strong>
+            <p>Atlas full-text relevance over content and boosted section headings.</p>
+          </article>
+          <article data-mode-summary="vector">
+            <span class="strategy-code">$vectorSearch</span>
+            <strong>Vector</strong>
+            <p>Exact cosine retrieval against each Voyage embedding representation.</p>
+          </article>
+          <article data-mode-summary="hybrid" class="active">
+            <span class="strategy-code">$rankFusion</span>
+            <strong>Hybrid</strong>
+            <p id="hybrid-copy">Weighted fusion of semantic and lexical result ranks.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="surface results-surface" aria-live="polite">
+        <div class="results-heading">
+          <div>
+            <p class="step-label">04 / Inspect</p>
+            <h2>Pipeline evidence</h2>
+          </div>
+          <div id="comparison-summary" class="comparison-summary">No query executed</div>
+        </div>
+        <div id="results" class="results-empty">
+          Search results will show model latency, retrieval scores, source pages, and returned evidence.
+        </div>
+      </section>
+    </main>
+
+    <dialog id="setup-dialog" class="setup-dialog" aria-labelledby="setup-title">
+      <form id="setup-form" class="setup-shell">
+        <header class="setup-header">
+          <div>
+            <p class="step-label">Local connection setup</p>
+            <h2 id="setup-title">Connect retrieval and generation</h2>
+            <p>Atlas and Voyage are required. OpenAI is optional for generated RAG answers. Credentials stay in a local <code>.env</code> file.</p>
+          </div>
+          <button id="setup-close" class="dialog-close" type="button" aria-label="Close connection setup">×</button>
+        </header>
+
+        <div class="setup-content">
+          <label class="setup-field" for="setup-atlas-uri">
+            <span>MongoDB Atlas URI</span>
+            <input id="setup-atlas-uri" type="password" autocomplete="off" placeholder="mongodb+srv://username:password@cluster.mongodb.net/" />
+            <small>Use a database user that can write data and manage Search indexes.</small>
+          </label>
+
+          <label class="setup-field" for="setup-voyage-key">
+            <span>Voyage API key</span>
+            <input id="setup-voyage-key" type="password" autocomplete="off" placeholder="pa-..." />
+            <small>The key is verified with a minimal Voyage 4 Lite embedding request.</small>
+          </label>
+
+          <label class="setup-field" for="setup-openai-key">
+            <span>OpenAI or gateway API key <em>Optional</em></span>
+            <input id="setup-openai-key" type="password" autocomplete="off" placeholder="sk-... or enterprise gateway key" />
+            <small>Enables a grounded executive summary after retrieval; the retrieved evidence remains visible.</small>
+          </label>
+
+          <label class="setup-field" for="setup-openai-base-url">
+            <span>Generation API base URL <em>Optional</em></span>
+            <input id="setup-openai-base-url" type="password" autocomplete="off" placeholder="https://api.openai.com/v1" />
+            <small>Enter the API root, without <code>/responses</code> or <code>/chat/completions</code>.</small>
+          </label>
+
+          <div class="setup-grid">
+            <label class="setup-field" for="setup-openai-api-mode">
+              <span>Generation API</span>
+              <select id="setup-openai-api-mode">
+                <option value="responses">Responses API</option>
+                <option value="chat_completions">Chat Completions</option>
+              </select>
+            </label>
+            <label class="setup-field" for="setup-openai-model">
+              <span>Generation model</span>
+              <input id="setup-openai-model" type="text" value="gpt-5-mini" autocomplete="off" />
+            </label>
+          </div>
+
+          <div class="setup-grid">
+            <label class="setup-field" for="setup-database">
+              <span>Database</span>
+              <input id="setup-database" type="text" value="voyage_pdf_live_demo" autocomplete="off" />
+            </label>
+            <label class="setup-field" for="setup-collection">
+              <span>Collection</span>
+              <input id="setup-collection" type="text" value="pdf_chunks" autocomplete="off" />
+            </label>
+          </div>
+
+          <label class="show-values">
+            <input id="setup-show-values" type="checkbox" />
+            <span>Show connection values</span>
+          </label>
+
+          <div class="setup-notice">
+            Demo use only. Use approved non-sensitive content and a non-production Atlas namespace. Uploaded PDFs stay on this device; extracted content and vectors are sent to the configured cloud services.
+          </div>
+          <div class="setup-notice">
+            Direct OpenAI uses the Responses API by default. OpenAI-compatible gateways can use Chat Completions and the gateway's API base URL; custom endpoints receive an <code>api-key</code> header.
+          </div>
+          <div id="setup-feedback" class="setup-feedback" role="status" aria-live="polite"></div>
+        </div>
+
+        <footer class="setup-actions">
+          <span id="setup-storage">Saved locally in this application folder</span>
+          <button id="setup-save" class="primary-button" type="submit">Verify and save</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="enablement-dialog" class="enablement-dialog" aria-labelledby="enablement-title">
+      <div class="enablement-shell">
+        <header class="enablement-header">
+          <div>
+            <p class="step-label">Customer implementation reference</p>
+            <h2 id="enablement-title">Build the retrieval pipeline</h2>
+            <p>Browse the exact, credential-free Python modules used by this running demo.</p>
+          </div>
+          <button id="enablement-close" class="dialog-close" type="button" aria-label="Close enablement reference">×</button>
+        </header>
+        <div class="enablement-flow" aria-label="Ingestion, retrieval, and generation flow">
+          <span>PDF</span><i>→</i><span>Chunk</span><i>→</i><span>Embed</span><i>→</i><span>Atlas load</span><i>→</i><span>Search</span><i>→</i><span>Generate</span>
+        </div>
+        <div class="enablement-body">
+          <nav id="enablement-tabs" class="enablement-tabs" aria-label="Implementation modules"></nav>
+          <section class="code-workspace" aria-live="polite">
+            <div class="code-toolbar">
+              <div>
+                <strong id="enablement-file">Loading source</strong>
+                <p id="enablement-description">Reading the approved implementation modules.</p>
+              </div>
+              <button id="copy-code" class="copy-code" type="button" disabled>Copy code</button>
+            </div>
+            <div id="enablement-notes" class="enablement-notes" aria-label="Relevant implementation notes"></div>
+            <pre id="enablement-code"><code>Loading exact project source...</code></pre>
+          </section>
+        </div>
+      </div>
+    </dialog>
+
+    <template id="stage-template">
+      <div class="stage-row">
+        <span class="stage-indicator"></span>
+        <span class="stage-copy"><strong></strong><small></small></span>
+        <span class="stage-status"></span>
+      </div>
+    </template>
+
+    <script src="/static/app.js?v=11"></script>
+  </body>
+</html>

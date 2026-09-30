@@ -1,0 +1,33 @@
+name: Validate Voyage PDF Search
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Create the project environment and install pinned dependencies
+        run: make setup
+      - name: Run unit and JavaScript syntax tests
+        run: make test
+      - name: Audit the tracked release content
+        run: make audit
+      - name: Verify installed dependency consistency
+        run: .venv/bin/python -m pip check
+      - name: Validate launcher syntax
+        run: bash -n run.sh scripts/setup-python.sh start.sh start.command
+      - name: Build and verify release checksum
+        run: |
+          make dist
+          cd dist
+          sha256sum -c voyage-pdf-search-portable-v$(cat ../VERSION).zip.sha256
