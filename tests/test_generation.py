@@ -34,8 +34,9 @@ class GenerationTests(unittest.TestCase):
         self, get_settings, get_client
     ) -> None:
         get_settings.return_value = SimpleNamespace(
-            openai_rag_model="gpt-5-mini",
+            openai_rag_model="gpt-5",
             openai_api_mode="responses",
+            openai_rag_max_output_tokens=4096,
         )
         client = Mock()
         client.responses.create.return_value = SimpleNamespace(
@@ -51,7 +52,8 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(generated["status"], "complete")
         self.assertEqual(generated["answer"], "The benefit is included [1].")
         request = client.responses.create.call_args.kwargs
-        self.assertEqual(request["model"], "gpt-5-mini")
+        self.assertEqual(request["model"], "gpt-5")
+        self.assertEqual(request["max_output_tokens"], 4096)
         self.assertFalse(request["store"])
         self.assertIn("[Evidence 1]", request["input"])
 
@@ -61,8 +63,9 @@ class GenerationTests(unittest.TestCase):
         self, get_settings, get_client
     ) -> None:
         get_settings.return_value = SimpleNamespace(
-            openai_rag_model="gpt-5-mini",
+            openai_rag_model="gpt-5",
             openai_api_mode="chat_completions",
+            openai_rag_max_output_tokens=4096,
         )
         client = Mock()
         client.chat.completions.create.return_value = SimpleNamespace(
@@ -82,8 +85,8 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(generated["status"], "complete")
         self.assertEqual(generated["api_mode"], "chat_completions")
         request = client.chat.completions.create.call_args.kwargs
-        self.assertEqual(request["model"], "gpt-5-mini")
-        self.assertEqual(request["max_completion_tokens"], 1200)
+        self.assertEqual(request["model"], "gpt-5")
+        self.assertEqual(request["max_completion_tokens"], 4096)
         self.assertFalse(request["store"])
         self.assertEqual(request["messages"][0]["role"], "developer")
         self.assertIn("[Evidence 1]", request["messages"][1]["content"])

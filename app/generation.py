@@ -79,7 +79,7 @@ def generate_executive_summary(query: str, results: list[dict]) -> dict:
             ],
             # GPT-5 completion limits include hidden reasoning tokens, so leave enough
             # room for both reasoning and the concise visible answer.
-            max_completion_tokens=1200,
+            max_completion_tokens=settings.openai_rag_max_output_tokens,
             store=False,
         )
         answer = (response.choices[0].message.content or "").strip()
@@ -88,7 +88,7 @@ def generate_executive_summary(query: str, results: list[dict]) -> dict:
             model=settings.openai_rag_model,
             instructions=RAG_INSTRUCTIONS,
             input=prompt,
-            max_output_tokens=600,
+            max_output_tokens=settings.openai_rag_max_output_tokens,
             store=False,
         )
         answer = (response.output_text or "").strip()

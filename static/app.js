@@ -174,7 +174,7 @@ function openSetup(required = false) {
     : "sk-... or enterprise gateway key (optional)";
   openaiBaseUrlInput.value = state.setup?.openai_base_url || "https://api.openai.com/v1";
   openaiApiModeInput.value = state.setup?.openai_api_mode || "responses";
-  openaiModelInput.value = state.setup?.openai_rag_model || "gpt-5-mini";
+  openaiModelInput.value = state.setup?.openai_rag_model || "gpt-5";
   document.querySelector("#setup-database").value =
     state.setup?.database || "voyage_pdf_live_demo";
   document.querySelector("#setup-collection").value =

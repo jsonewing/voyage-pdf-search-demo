@@ -130,7 +130,7 @@ def _validate_openai(api_key: str, model: str, base_url: str, api_mode: str) -> 
                     {"role": "developer", "content": "Return only the word OK."},
                     {"role": "user", "content": "Validate this local demo connection."},
                 ],
-                max_completion_tokens=128,
+                max_completion_tokens=1024,
                 store=False,
             )
             output_text = response.choices[0].message.content
@@ -139,7 +139,7 @@ def _validate_openai(api_key: str, model: str, base_url: str, api_mode: str) -> 
                 model=model,
                 instructions="Return only the word OK.",
                 input="Validate this local demo connection.",
-                max_output_tokens=128,
+                max_output_tokens=1024,
                 store=False,
             )
             output_text = response.output_text

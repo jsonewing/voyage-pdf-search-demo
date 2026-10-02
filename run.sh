@@ -220,6 +220,10 @@ if [ -d "$VENV_DIR" ] && [ "$venv_python_version" != "$portable_python_version" 
   echo "Replacing an environment that was not built with bundled Python $portable_python_version ..."
   rm -rf "$VENV_DIR"
 fi
+if [ -d "$VENV_DIR" ] && [ ! -x "$VENV_PY" ]; then
+  echo "Replacing a broken or relocated private Python environment ..."
+  rm -rf "$VENV_DIR"
+fi
 if [ ! -x "$VENV_PY" ]; then
   echo "Creating the private Python environment ..."
   "$PYTHON_BIN" -m venv "$VENV_DIR"

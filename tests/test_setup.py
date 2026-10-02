@@ -63,7 +63,7 @@ class SetupTests(unittest.TestCase):
             openai_api_key="sk-saved-key-value-for-testing",
             openai_base_url="https://gateway.example/openai/v1",
             openai_api_mode="chat_completions",
-            openai_rag_model="gpt-5-mini",
+            openai_rag_model="gpt-5",
         )
         setup_summary.return_value = {"configured": True}
         result = configure_local(
@@ -80,7 +80,7 @@ class SetupTests(unittest.TestCase):
         validate_voyage.assert_called_once_with("pa-saved-key-value")
         validate_openai.assert_called_once_with(
             "sk-saved-key-value-for-testing",
-            "gpt-5-mini",
+            "gpt-5",
             "https://gateway.example/openai/v1",
             "chat_completions",
         )
@@ -94,7 +94,7 @@ class SetupTests(unittest.TestCase):
             persisted["OPENAI_BASE_URL"], "https://gateway.example/openai/v1"
         )
         self.assertEqual(persisted["OPENAI_API_MODE"], "chat_completions")
-        self.assertEqual(persisted["OPENAI_RAG_MODEL"], "gpt-5-mini")
+        self.assertEqual(persisted["OPENAI_RAG_MODEL"], "gpt-5")
         close_client.assert_called_once()
         close_voyage_client.assert_called_once()
         close_openai_client.assert_called_once()

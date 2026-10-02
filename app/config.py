@@ -36,7 +36,10 @@ class Settings:
             "OPENAI_BASE_URL", "https://api.openai.com/v1"
         ).rstrip("/")
         self.openai_api_mode = os.getenv("OPENAI_API_MODE", "responses")
-        self.openai_rag_model = os.getenv("OPENAI_RAG_MODEL", "gpt-5-mini")
+        self.openai_rag_model = os.getenv("OPENAI_RAG_MODEL", "gpt-5")
+        self.openai_rag_max_output_tokens = int(
+            os.getenv("OPENAI_RAG_MAX_OUTPUT_TOKENS", "4096")
+        )
 
         self.voyage_lite_model = os.getenv("VOYAGE_LITE_MODEL", "voyage-4-lite")
         self.voyage_context_model = os.getenv("VOYAGE_CONTEXT_MODEL", "voyage-context-4")

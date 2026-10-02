@@ -37,7 +37,7 @@ class SearchApiTests(unittest.TestCase):
             "openai_configured": True,
             "openai_base_url": "https://gateway.example/openai/v1",
             "openai_api_mode": "chat_completions",
-            "openai_rag_model": "gpt-5-mini",
+            "openai_rag_model": "gpt-5",
             "atlas_target": "example.mongodb.net",
             "database": "demo_db",
             "collection": "chunks",
@@ -55,7 +55,7 @@ class SearchApiTests(unittest.TestCase):
                     "collection": "chunks",
                     "openai_base_url": "https://gateway.example/openai/v1",
                     "openai_api_mode": "chat_completions",
-                    "openai_rag_model": "gpt-5-mini",
+                    "openai_rag_model": "gpt-5",
                 },
             )
         self.assertEqual(response.status_code, 200)
@@ -67,7 +67,7 @@ class SearchApiTests(unittest.TestCase):
             "chunks",
             "https://gateway.example/openai/v1",
             "chat_completions",
-            "gpt-5-mini",
+            "gpt-5",
         )
         self.assertNotIn("secret", response.text)
 

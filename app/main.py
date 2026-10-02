@@ -67,7 +67,7 @@ class SetupRequest(BaseModel):
     openai_api_key: SecretStr | None = None
     openai_base_url: str = Field(default="", max_length=500)
     openai_api_mode: Literal["responses", "chat_completions"] = "responses"
-    openai_rag_model: str = Field(default="gpt-5-mini", min_length=1, max_length=100)
+    openai_rag_model: str = Field(default="gpt-5", min_length=1, max_length=100)
     database: str = Field(default="voyage_pdf_live_demo", min_length=1, max_length=64)
     collection: str = Field(default="pdf_chunks", min_length=1, max_length=64)
 
