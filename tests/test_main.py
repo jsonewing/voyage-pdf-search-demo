@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -209,9 +211,20 @@ class SearchApiTests(unittest.TestCase):
     @patch("pathlib.Path.write_bytes")
     @patch("app.main.executor.submit")
     @patch("app.main.jobs.create")
+    @patch("app.main.get_settings")
     def test_upload_preserves_selected_model_lanes(
-        self, create_job, submit, write_bytes
+        self, get_settings, create_job, submit, write_bytes
     ) -> None:
+        get_settings.return_value = SimpleNamespace(
+            validate=lambda: None,
+            upload_max_mb=50,
+            upload_dir=Path("/tmp"),
+            lanes=(
+                SimpleNamespace(key="voyage_4_lite"),
+                SimpleNamespace(key="voyage_context_4"),
+                SimpleNamespace(key="voyage_multimodal_3_5"),
+            ),
+        )
         create_job.return_value = {"id": "job-1", "status": "processing"}
         with TestClient(app) as client:
             response = client.post(
